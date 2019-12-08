@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:~/test;AUTO_SERVER=TRUE
+    data-username: sa
+    password:
+    continue-on-error: false
+    schema: classpath:sql/test/oomall_schema v1.1.sql
+    sql-script-encoding: utf-8
+    initialization-mode: never
+
+
+  h2:
+    console:
+      enabled: true
+      settings:
+        web-allow-others: false

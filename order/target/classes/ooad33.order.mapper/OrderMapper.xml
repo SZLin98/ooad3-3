@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ooad33.order.mapper.OrderMapper">
+<!--    <resultMap id="orderMap" type="order" autoMapping="true">-->
+<!--        <id property="id" column="id"></id>-->
+<!--        <collection property="items" select="findOrderItemsByOrderId" ofType="orderItem" javaType="java.util.List" column="id"/>-->
+<!--    </resultMap>-->
+
+    <select id="findOrderItemsByOrderId" parameterType="Integer" resultType="orderItem">
+        select
+        id, order_id, item_type, item_status, number, price, deal_price, product_id, gmt_create, gmt_modified, is_deleted as beDeleted
+        from order_item where order_id=#{id} and IS_DELETED=false
+    </select>
+
+    <select id="findOrdersByUserId" resultType="order">
+        select id,
+            USER_ID,
+            order_sn,
+            status,
+            consignee,
+            mobile,
+            message,
+            goods_price,
+            freight_price,
+            coupon_price,
+            rebate_price,
+            integral_price,
+            ship_sn,
+            ship_channel,
+            ship_time,
+            confirm_time,
+            end_time,
+            pay_time,
+            parent_id,
+            address,
+            gmt_create
+        from `order` where user_id=#{userId,jdbcType=INTEGER} and IS_DELETED=false
+        order by GMT_CREATE
+        DESC limit (#{page}-1),#{limit}
+    </select>
+
+    <select id="findOrderById" parameterType="Integer" resultType="order">
+        select
+        id, user_id, be_shared_item_ids, order_sn, status, consignee, mobile, message, goods_price, freight_price, coupon_price, rebate_price, integral_price, ship_sn, ship_channel, ship_time, confirm_time, end_time, pay_time, parent_id, address, gmt_create, gmt_modified, is_deleted as beDeleted
+        from  `order` where ID=#{id} and IS_DELETED=false
+    </select>
+
+    <insert id="addOrder" parameterType="order" useGeneratedKeys="true" keyProperty="id">
+        insert into `order`(user_id,be_shared_item_ids,order_sn,status,consignee,mobile,message,goods_price,freight_price,coupon_price,rebate_price,integral_price,ship_sn,ship_channel,ship_time,confirm_time,end_time,pay_time,parent_id,address,gmt_create,gmt_modified,is_deleted)
+        values (#{userId},#{beSharedItemIds},#{orderSn},#{statusCode},#{consignee},#{mobile},#{message},#{goodPrice},#{freightPrice},#{couponPrice},#{rebatePrice},#{integralPrice},#{shipSn},#{shipChannel},#{shipTime},#{confirmTime},#{endTime},#{payTime},#{parentId},#{address},#{gmtCreate},#{gmtModified},#{beDeleted})
+    </insert>
+
+
+
+
+    <insert id="addOrderItems" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        insert into order_item(order_id,item_type,item_status,number,price,deal_price,product_id,gmt_create,is_deleted)
+        values
+        <foreach collection="list"  item="item" separator=",">
+            (#{item.orderId},#{item.itemType},#{item.statusCode},#{item.number},#{item.price},#{item.dealPrice},
+            #{item.productId},#{item.gmtCreate},#{item.beDelete})
+        </foreach>
+    </insert>
+
+    <update id="deleteOrderById" parameterType="Integer" keyProperty="id">
+        update `order` set IS_DELETED=true where ID=#{id}
+    </update>
+
+    <update id="deleteOrderItemByOrderId" parameterType="Integer" keyProperty="id">
+        update ORDER_ITEM set IS_DELETED=true where ORDER_ID=#{id}
+    </update>
+
+    <update id="updateOrderByShip" keyProperty="id">
+        update `order` set SHIP_SN=#{shipSn},SHIP_CHANNEL=#{shipChannel} where ID=#{orderId}
+    </update>
+
+</mapper>

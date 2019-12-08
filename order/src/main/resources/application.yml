@@ -1,0 +1,24 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: order
+  profiles:
+    active: test
+
+mybatis:
+  type-aliases-package: ooad33.order.domain
+  mapper-locations: classpath:ooad33.order.mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+logging:
+  level:
+    org.springframework.web: info
+    root: error
+
+    ooad33.order.controller: debug
+    ooad33.order.service: debug
+    ooad33.order.dao: debug
+    ooad33.order.mapper: debug
+    ooad33.order.domain: debug
