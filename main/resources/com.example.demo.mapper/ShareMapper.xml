@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.ShareMapper">
+    <resultMap id="shareRuleMap" type="shareRule" autoMapping="true">
+        <id property="id" column="id"/>
+        <collection property="items" select="getShareRule" ofType="orderItem" javaType="java.util.List" column="id"/>
+    </resultMap>
+    <select id="getShareRule" parameterType="Integer" resultMap="shareRuleMap">
+        select
+            id,
+            share_level_strategy,
+            goods_id,
+            gmt_modified,
+            is_deleted,
+            gmt_create
+            from share_rule
+        where is_deleted=0
+    </select>
+
+    <insert id="createShareRule" parameterType="shareRule" useGeneratedKeys="true" keyProperty="id">
+        insert into share_rule(share_level_strategy, goods_id)
+        values (#{shareLevelStrategy},#{goodsId})
+    </insert>
+
+    <update id="deShareRule" parameterType="Integer" >
+        update share_rule set is_deleted=1 where id=#{id}
+    </update>
+
+    <update id="alterShareRule" parameterType="ShareRule">
+        update share_rule
+        <trim prefix="set" suffixOverrides=",">
+            <if test="share_level_strategy!=null">share_level_strategy=#{shareLevelStrategy},</if>
+            <if test="goods_id!=null">goods_id=#{goodsId},</if>
+            <if test="gmt_modified!=null">gmt_modified=#{gmtModified},</if>
+            <if test="is_deleted!=null">is_deleted=#{beDeleted},</if>
+            <if test="gmt_create!=null">gmt_create=#{gmt_create},</if>
+        </trim>
+        WHERE id=#{id}
+    </update>
+
+    <insert id="createBeShareItem" parameterType="beShareItem" keyProperty="id" useGeneratedKeys="true">
+        insert into be_shared_item(goods_id, sharer_id, status, birthtime, be_shared_user_id)
+        values (#{goodsId},#{sharerId},#{statusCode},#{birthTime},#{beSharedUserId})
+    </insert>
+
+    <select id="checkBeSharedItem" >
+        select id
+        from be_shared_item where be_shared_user_id=#{beSharedId} AND goods_id=#{goodsId} AND is_deleted=0
+    </select>
+
+    <update id="alterStatues" parameterType="Integer">
+        update be_shared_item set status=1 where id=#{beSharedItemId}
+    </update>
+
+    <select id="checkSharedItem">
+        select id
+        from share_item where user_id=#{sharerId} AND goods_id=#{goodsId}
+    </select>
+    <insert id="addShareItem" parameterType="ShareItem">
+        insert into share_item(user_id, goods_id,success_num, gmt_create)
+        values (#{sharerId},#{goodsId},#{1},#{gmtCreate})
+    </insert>
+    <update id="addShareSuccess">
+        update share_item set success_num=success_num+1
+        where user_id=#{userId} AND goods_id=#{goodsId}
+    </update>
+</mapper>
