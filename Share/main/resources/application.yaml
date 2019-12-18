@@ -1,0 +1,44 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/oomall?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf-8
+    username: root
+    password: Kaixindian
+    type: com.alibaba.druid.pool.DruidDataSource
+#    druid:
+#      filter:
+#        stat:
+#          log-slow-sql:true
+#          slow-sql-millis:100
+  application:
+    name: share
+
+mybatis:
+  type-aliases-package: com.example.demo.domain
+  mapper-locations: classpath:com.example.demo.mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    org.springframework.web: info
+    root: error
+
+    com:
+      example:
+        demo:
+          controller: debug
+          service: debug
+          dao: debug
+          mapper: debug
+          domain: debug
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://ooad33.top:8081/eureka
+  instance:
+    prefer-ip-address: true
+    #    ip-address: 127.0.0.1
+    lease-expiration-duration-in-seconds: 90
+    lease-renewal-interval-in-seconds: 30
