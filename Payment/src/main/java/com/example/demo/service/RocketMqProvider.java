@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.example.demo.domain.Payment;
+import com.example.demo.util.ResponseUtil;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
@@ -15,7 +16,7 @@ import org.springframework.util.StopWatch;
 /**
  * @author chei1
  */
-@Service
+@Service("RocketMqProvider")
 public class RocketMqProvider {
     private static final Logger LOG= LoggerFactory.getLogger(RocketMqProvider.class);
     /**
@@ -33,7 +34,7 @@ public class RocketMqProvider {
     private String namesAddr;
     // @PostConstruct
 
-    public void defaultMqProducer(Payment payments) {
+    public Object defaultMqProducer(Payment payments) {
         //生产者的组名
         DefaultMQProducer producer = new DefaultMQProducer(producerGroup);
 
@@ -55,10 +56,13 @@ public class RocketMqProvider {
 
             StopWatch stop = new StopWatch();
 
+
             SendResult result = producer.send(message);
             LOG.info("发送响应：MsgId:" + result.getMsgId() + "，发送状态:" + result.getSendStatus());
+            return ResponseUtil.ok(payments);
         } catch (Exception e) {
             e.printStackTrace();
+            return ResponseUtil.addPayment();
         } finally {
             producer.shutdown();
         }

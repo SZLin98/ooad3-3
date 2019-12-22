@@ -16,28 +16,58 @@
 <!--    <result column="gmt_modified" property="gmtModified" jdbcType="DATETIME"/>-->
 </resultMap>
     <insert id="create" parameterType="com.example.demo.domain.Payment">
-        INSERT INTO payment (actual_price, pay_channel, pay_time, pay_sn, begin_time, end_time, order_id)
+        INSERT INTO oomall_payment (actual_price, pay_channel, pay_time, pay_sn, begin_time, end_time, order_id)
         VALUES (#{actualPrice},#{payChannel},#{payTime},#{paySn},#{beginTime},#{endTime},#{orderId})
     </insert>
 
 
     <update id="put" parameterType="com.example.demo.domain.Payment">
-        UPDATE payment
-
+        UPDATE oomall_payment
         set
-            is_successful=#{beSuccessful},
+            status=#{statusCode},
             pay_time=#{payTime}
-        where pay_sn=#{paySn}
+        where pay_sn=#{paySn} and is_deleted=0 and status=0
     </update>
         <select id="selectPay" parameterType="java.lang.String" resultType="com.example.demo.domain.Payment">
-        select  id,pay_channel as payChannel,is_successful as beSuccessful,
+        select  id,actual_price as actualPrice,pay_channel as payChannel,status as statusCode,
              pay_sn as paySn,begin_time as beginTime ,end_time as endTime,order_id as orderId
-               from payment where pay_sn=#{paySn}
+               from oomall_payment where pay_sn=#{paySn} and is_deleted=0 and status=0
 
     </select>
 
+    <update id="deletePayment" parameterType="java.lang.String" >
+        update oomall_payment
+        set is_deleted=1
+        where pay_sn=#{paySn} and is_deleted=0
+    </update>
 
+    <select id="selectAllPayment" resultType="com.example.demo.domain.Payment">
+        select id, actual_price as actualPrice, pay_channel as payChannel, status as statusCode,
+               pay_time as payTime , pay_sn as paySn, begin_time as beginTime, end_time as endTime, order_id as orderId, is_deleted as beDeleted, gmt_create as gmtCreate, gmt_modified as gmtModified
+        from oomall_payment
+        where is_deleted=0
+        limit #{start},#{limit}
+    </select>
 
+    <select id="selectPayment" parameterType="java.lang.String" resultType="com.example.demo.domain.Payment">
+        select  id, actual_price as actualPrice, pay_channel as payChannel, status as statusCode,
+                pay_time as payTime , pay_sn as paySn, begin_time as beginTime, end_time as endTime, order_id as orderId, is_deleted as beDeleted, gmt_create as gmtCreate, gmt_modified as gmtModified
+        from oomall_payment where is_deleted=0
+
+    </select>
+
+    <select id="selectByOrderId" parameterType="java.lang.Integer" resultType="com.example.demo.domain.Payment">
+        select id, actual_price as actualPrice, pay_channel as payChannel, status as statusCode,
+               pay_time as payTime , pay_sn as paySn, begin_time as beginTime, end_time as endTime, order_id as orderId, is_deleted as beDeleted, gmt_create as gmtCreate, gmt_modified as gmtModified
+        from oomall_payment
+        where order_id=#{orderId} and is_deleted=0 and status=0
+
+    </select>
+
+    <insert id="refundPayment" parameterType="com.example.demo.domain.Payment">
+        INSERT INTO oomall_payment (actual_price, pay_channel, pay_time, pay_sn, begin_time, end_time, order_id,status)
+        VALUES (#{actualPrice},#{payChannel},#{payTime},#{paySn},#{beginTime},#{endTime},#{orderId},#{statusCode})
+    </insert>
 </mapper>
 
 

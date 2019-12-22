@@ -23,9 +23,9 @@ public class Payment {
      */
     private Integer payChannel;
     /**
-     * 是否付款成功,0不成功，1成功
+     * 付款状态,0未支付，1成功，2失败
      */
-    private Boolean beSuccessful;
+    private Integer statusCode;
     /**
      * 付款时间
      */
@@ -54,17 +54,26 @@ public class Payment {
 //        this.id=id;
 //    }
 
-    /**
-     * 返回字符串
-     * @return String
-     */
+    public boolean timeValid(){
+        LocalDateTime nowTime=LocalDateTime.now();
+        return nowTime.isBefore(endTime);
+    }
+
+    public  boolean beRefund(){
+        if (actualPrice.compareTo(BigDecimal.ZERO)==-1){
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
     @Override
     public String toString() {
         return "Payment{" +
                 "id=" + id +
                 ", actualPrice=" + actualPrice +
                 ", payChannel=" + payChannel +
-                ", beSuccessful=" + beSuccessful +
+                ", statusCode=" + statusCode +
                 ", payTime=" + payTime +
                 ", paySn='" + paySn + '\'' +
                 ", beginTime=" + beginTime +
@@ -76,17 +85,18 @@ public class Payment {
                 '}';
     }
 
+    /**
+     * 返回字符串
+     * @return String
+     */
+
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {return true;}
         if (o == null || getClass() != o.getClass()) {return false;}
         Payment payment = (Payment) o;
         return Objects.equals(id, payment.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
     }
 
     public Integer getId() {
@@ -113,12 +123,12 @@ public class Payment {
         this.payChannel = payChannel;
     }
 
-    public Boolean getBeSuccessful() {
-        return beSuccessful;
+    public Integer getStatusCode() {
+        return statusCode;
     }
 
-    public void setBeSuccessful(Boolean beSuccessful) {
-        this.beSuccessful = beSuccessful;
+    public void setStatusCode(Integer statusCode) {
+        this.statusCode = statusCode;
     }
 
     public LocalDateTime getPayTime() {

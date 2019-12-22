@@ -12,15 +12,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.util.Date;
-import com.example.demo.mapper.PaymentMapper;
 
 
 /**
@@ -89,8 +86,9 @@ public class RocketMqConsumer {
                         payments.setActualPrice(actualPrice);
                         Integer orderId = new Integer(jsonObject.getString("orderId"));
                         payments.setOrderId(orderId);
-                        Integer payChannel = new Integer(jsonObject.getString("payChannel"));
-                        payments.setPayChannel(payChannel);
+                        payments.setStatusCode(0);
+
+                        payments.setPayChannel(1);
                         payments.setBeginTime(LocalDateTime.parse(jsonObject.getString("beginTime")));
                         payments.setEndTime(LocalDateTime.parse(jsonObject.getString("endTime")));
                         payments.setPaySn(jsonObject.getString("paySn"));
@@ -101,6 +99,8 @@ public class RocketMqConsumer {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                    LOG.info("-----再次请求-----");
+                    return ConsumeConcurrentlyStatus.RECONSUME_LATER;
 
                 }
                 return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
@@ -108,6 +108,7 @@ public class RocketMqConsumer {
             consumer.start();
         } catch (Exception e) {
             e.printStackTrace();
+
         }
     }
 
@@ -145,7 +146,7 @@ public class RocketMqConsumer {
                         LOG.info("消费响应：msgId : " + messageExt.getMsgId() + ",  msgBody : " + messageBody);//输出消息内容
                         JSONObject jsonObject = JSONObject.parseObject(messageBody);
                         payments.setPaySn(jsonObject.getString("paySn"));
-                        payments.setBeSuccessful(true);
+                        payments.setStatusCode(1);
                         payments.setPayTime(LocalDateTime.parse(jsonObject.getString("payTime")));
                         LOG.info(payments.toString());
 
@@ -157,6 +158,8 @@ public class RocketMqConsumer {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                    LOG.info("-----再次请求-----");
+                    return ConsumeConcurrentlyStatus.RECONSUME_LATER;
 
                 }
                 return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;

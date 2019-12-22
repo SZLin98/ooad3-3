@@ -1,17 +1,17 @@
 package com.example.demo.service;
 
-import com.example.demo.domain.OrderPo;
 import com.example.demo.domain.Payment;
 import com.example.demo.inter.WxPaymentController;
 import com.example.demo.mapper.PaymentMapper;
+import com.example.demo.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 /**
@@ -28,52 +28,86 @@ public class PaymentService {
     @Autowired
     PaymentMapper paymentMapper;
 
-    public Payment addPayment(Payment payments){
 
-        Integer payChannel=1;
-
-
-        //获取当前的日期
-        LocalDateTime beginTime = LocalDateTime.now();
-        LocalDateTime endTime = beginTime.plusHours(2L);
-        LOG.info("beginTime:"+beginTime);
-        LOG.info("endTime:"+endTime);
-        String paySn=wxPaymentController.unifiedWxPayment();
+    public Object addPayment(Payment payments){
+        String paySn=wxPaymentController.unifiedWxPayment(payments);
         LOG.info("paySn"+paySn);
-
-
-
-        payments.setBeginTime(beginTime);
-        payments.setEndTime(endTime);
-
-        payments.setPayChannel(payChannel);
+        payments.setStatusCode(0);
         payments.setPaySn(paySn);
-
-
-
-
-        rocketMqProvider.defaultMqProducer(payments);
-        return payments;
-
-//        JSONObject jsonObject = new JSONObject();
-//        JSONObject jsonObjectPaymentInfo = new JSONObject();
-//        jsonObjectPaymentInfo.put("orderId",orderId);
-//        jsonObjectPaymentInfo.put("payChannel",payChannel);
-//        jsonObjectPaymentInfo.put("beginTime",beginTime);
-//        jsonObjectPaymentInfo.put("endTime",endTime);
-//        System.out.println(jsonObjectPaymentInfo);
-
+        payments.setPayChannel(1);
+        return rocketMqProvider.defaultMqProducer(payments);
 
     }
-    public Payment putPayment(String paySn){
-        Payment payment = paymentMapper.selectPay(paySn).get(0);
-//        Payment payment=new Payment();
-        LocalDateTime payTime = LocalDateTime.now();
-        payment.setPayTime(payTime);
+    public Object putPayment(String paySn){
+        List<Payment> paymentList= paymentMapper.selectPay(paySn);
+
+        if(paymentList.size()==0){
+
+            return ResponseUtil.paymentNotFound();
+        }
+
+        else {
+            Payment payment=paymentList.get(0);
+            boolean paySuccess=wxPaymentController.requestWxPayment(paySn);
+            if(payment.timeValid()&&paySuccess)
+            {
+            LocalDateTime payTime = LocalDateTime.now();
+            payment.setPayTime(payTime);
+            payment.setPaySn(paySn);
+            payment.setStatusCode(1);
+            rocketMqProvider.updateMqProducer(payment);
+            Object retObj = ResponseUtil.ok(payment);
+            LOG.info("submit:"+retObj);
+            return retObj;
+            }
+            else {
+                return ResponseUtil.putPayment();
+            }
+        }
+    }
+
+    public boolean deletePayment(String paySn){
+        int deleteColumn=paymentMapper.deletePayment(paySn);
+        if(deleteColumn==0){
+            return false;
+        }
+        else {
+            LOG.info("admin delete payment:"+paySn);
+            return true;
+        }
+
+    }
+
+    public List<Payment> selectAllPayment(Integer pages,Integer limit){
+        Integer start=(pages-1)*limit;
+        return paymentMapper.selectAllPayment(start,limit);
+    }
+
+    public Payment selectPayment(String paySn){
+        List<Payment> paymentList= paymentMapper.selectPayment(paySn);
+        if(paymentList.size()==0){
+
+            return new Payment();
+        }
+        else {
+            return  paymentList.get(0);
+        }
+    }
+
+    public List<Payment> selectByOrderId(Integer orderId){
+        return paymentMapper.selectByOrderId(orderId);
+    }
+
+    public Payment refundPayment(Payment payment){
+        String paySn=wxPaymentController.unifiedWxPayment(payment);
         payment.setPaySn(paySn);
-        payment.setBeSuccessful(true);
-        rocketMqProvider.updateMqProducer(payment);
-        return payment;
+        payment.setStatusCode(1);
+        if(paymentMapper.refundPayment(payment)!=0){
+            LOG.info("Refund:"+payment.toString());
+            return payment;
+        }
+        else {
+            return new Payment();
+        }
     }
-
 }
