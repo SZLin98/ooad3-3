@@ -1,0 +1,70 @@
+spring:
+  application:
+    name: zuul-gateway
+server:
+  port: 5555
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://ooad33.top:8081/eureka/
+  instance:
+    prefer-ip-address: true
+    ip-address:  47.100.91.153
+zuul:
+  routes: #给服务配置路由
+    userInfoService:
+      path: /userInfoService/**
+      url: forward:/
+    logService:
+      path: /logService/**
+      serviceId: logService
+    adService:
+      path: /adService/**
+      serviceId: adService
+    afterSaleService:
+      path: /afterSaleService/**
+      serviceId: afterSaleService
+    paymentService:
+      path: /paymentService/**
+      serviceId: paymentService
+    discountService:
+      path: /discountService/**
+      serviceId: discountService
+    collectionService:
+      path: /collectionService/**
+      serviceId: collectionService
+    commentService:
+      path: /commentService/**
+      serviceId: commentService
+    goodsInfoService:
+      path: /goodsInfoService/**
+      serviceId: goodsInfoService
+    topicService:
+      path: /topicService/**
+      serviceId: topicService
+    footprintService:
+      path: /footprintService/**
+      serviceId: footprintService
+    orderService:
+      path: /orderService/**
+      serviceId: orderService
+    cartService:
+      path: /cartService/**
+      serviceId: cartService
+    shareService:
+      path: /shareService/**
+      serviceId: shareService
+    freightService:
+      path: /freightService/**
+      serviceId: freightService
+    addressService:
+      path: /addressService/**
+      serviceId: addressService
+    logisticsService:
+      path: /logisticsService/**
+      serviceId: logisticsService
+    wxPaymentService:
+      path: /wxPaymentService/**
+      serviceId: wxPaymentService
+
